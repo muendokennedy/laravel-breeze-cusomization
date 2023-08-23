@@ -26,17 +26,18 @@ class ProviderController extends Controller
 
             $socialUser = Socialite::driver($provider)->user();
 
-            if(User::where('email', $socialUser->getEmail())->exists()){
-                $formerprovider = User::where('provider', $provider);
-                return redirect('/login')->withErrors(['email' => 'You had used a different method to login, specifically'. $formerprovider]);
-            }
-
             $user = User::where([
                 'provider' => $provider,
                 'provider_id' => $socialUser->id,
             ])->first();
 
             if(!$user){
+
+                if(User::where('email', $socialUser->getEmail())->exists()){
+                    $formerprovider = User::where('provider', $provider);
+                    return redirect('/login')->withErrors(['email' => 'You had used a different method to login, specifically'. $formerprovider]);
+                }
+
                 $password = Str::random(12);
                 $user = User::create([
                     'name' => $socialUser->getName(),
