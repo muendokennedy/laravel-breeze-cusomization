@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class ProviderController extends Controller
@@ -35,16 +37,22 @@ class ProviderController extends Controller
             ])->first();
 
             if(!$user){
+                $password = Str::random(12);
                 $user = User::create([
                     'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
                     'username' => User::generateUsername($socialUser->getNickname()),
                     'provider' => $provider,
                     'provider_id' => $socialUser->getId(),
-                    'provider_token' => $socialUser->token
+                    'provider_token' => $socialUser->token,
+                    'password' => $password
                 ]);
 
-                // $user->sendEmailVerificationNotification();
+                $user->sendEmailVerificationNotification();
+
+                $user->update([
+                    'password' => Hash::make($password)
+                ]);
             }
 
             Auth::login($user);
