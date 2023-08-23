@@ -13,22 +13,25 @@ class ProviderController extends Controller
 
     public function redirect($provider)
     {
-        return Socialite::driver($provider)->stateless()->redirect();
+        return Socialite::driver($provider)->redirect();
     }
 
     public function callback($provider)
     {
+        $socialUser = Socialite::driver($provider)->user();
+
         try {
 
-            $socialUser = Socialite::driver($provider)->stateless()->user();
+            $socialUser = Socialite::driver($provider)->user();
 
             if(User::where('email', $socialUser->getEmail())->exists()){
-                return redirect('/login')->withErrors(['email' => 'You had used a different method to login']);
+                $formerprovider = User::where('provider', $provider);
+                return redirect('/login')->withErrors(['email' => 'You had used a different method to login, specifically'. $formerprovider]);
             }
 
             $user = User::where([
                 'provider' => $provider,
-                'provider_id' => $socialUser->id
+                'provider_id' => $socialUser->id,
             ])->first();
 
             if(!$user){
@@ -41,7 +44,7 @@ class ProviderController extends Controller
                     'provider_token' => $socialUser->token
                 ]);
 
-                $user->sendEmailVerificationNotification();
+                // $user->sendEmailVerificationNotification();
             }
 
             Auth::login($user);
@@ -50,7 +53,7 @@ class ProviderController extends Controller
 
         } catch (\Exception $e) {
 
-            redirect('/');
+            return redirect('/login');
         }
 
     }

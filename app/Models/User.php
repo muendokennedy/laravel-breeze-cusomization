@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -53,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if($username == null){
             $username = Str::lower(Str::random(8));
         }
-        if(User::where('username', $username)){
+        if(User::where('username', $username)->exists()){
             $newUsername = $username . Str::lower(Str::random(3));
             $username = self::generateUsername($newUsername);
         }
