@@ -20,8 +20,6 @@ class ProviderController extends Controller
 
     public function callback($provider)
     {
-        $socialUser = Socialite::driver($provider)->user();
-
         try {
 
             $socialUser = Socialite::driver($provider)->user();
@@ -34,11 +32,10 @@ class ProviderController extends Controller
             if(!$user){
 
                 if(User::where('email', $socialUser->getEmail())->exists()){
-                    $formerprovider = User::where('provider', $provider);
-                    return redirect('/login')->withErrors(['email' => 'You had used a different method to login, specifically'. $formerprovider]);
+                    return redirect('/login')->withErrors(['email' => 'You had used a different method to login']);
                 }
 
-                $password = Str::random(12);
+                $password = Str::random(8);
                 $user = User::create([
                     'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
@@ -54,15 +51,16 @@ class ProviderController extends Controller
                 $user->update([
                     'password' => Hash::make($password)
                 ]);
+
+            }else{
+
+                Auth::login($user);
+
+                return redirect('/dashboard');
             }
-
-            Auth::login($user);
-
-            return redirect('/dashboard');
-
         } catch (\Exception $e) {
 
-            return redirect('/login');
+            return redirect('/login')->withErrors(['email' => "{$e->getMessage()}"]);
         }
 
     }
