@@ -52,12 +52,12 @@ class ProviderController extends Controller
                     'password' => Hash::make($password)
                 ]);
 
-            }else{
+            }
 
                 Auth::login($user);
 
                 return redirect('/dashboard');
-            }
+
         } catch (\Exception $e) {
 
             return redirect('/login')->withErrors(['email' => "{$e->getMessage()}"]);
